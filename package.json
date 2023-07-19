@@ -1,6 +1,6 @@
 {
   "name": "conch-shell",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "Voy7",
   "description": "",
   "main": "dist/src/index.js",
