@@ -59,6 +59,25 @@ export default class Help extends Command {
       const playable = new Playable(input, PlayableType.File, input.args[0])
       musicPlayer.addPlayable(playable)
     }
+
+    // If is a YouTube playlist URL
+    else if (input.args[0]?.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/playlist\?.+$/)) {
+      const playlist = await this.youtubeAPI.getPlaylist(input.args[0])
+      if (!playlist) return input.reply(`:x: \`Error: Could not get playlist info for "${input.args[0]}"\``)
+      
+      const videos: Video[] = await playlist.getVideos()
+      if (videos.length === 0) return input.reply(`:x: \`Error: Playlist "${playlist.title}" contains no videos!\``)
+
+      input.reply({ embeds: [{
+        color: EnvVariables.EMBED_COLOR_1,
+        description: `:track_next:  Added **${videos.length}** videos to the queue from playlist: [${playlist.title}](${playlist.url})`
+      }]})
+
+      videos.forEach(video => {
+        const playable = new Playable(input, PlayableType.YouTube, video.url, video, true)
+        musicPlayer.addPlayable(playable)
+      })
+    }
     
     // If is a YouTube URL
     else if (input.args[0]?.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/)) {
@@ -79,6 +98,7 @@ export default class Help extends Command {
           const playable = new Playable(input, PlayableType.YouTube, results[0].url, results[0])
           musicPlayer.addPlayable(playable)
         }
+        else input.reply(`:x: \`No search results found for: "${input.args[0]}"\``)
       }
       catch (error: any) {
         Logger.error(error.message)

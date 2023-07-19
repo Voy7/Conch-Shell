@@ -80,11 +80,10 @@ export default class Command {
       }
     }
 
-    // If command has 'onlyInBotChannels' property, check if executor is in same VC as bot
+    // If command has 'onlyInSameVC' property, check if executor is in same VC as bot
     if (this.config.onlyInSameVC) {
       const userVoiceChannel = Utils.getUserVoiceChannel(parsedInput.guild, parsedInput.user.id)
       const botVoiceChannel = BotHandler.getMusicPlayer(parsedInput.guild.id)?.voiceChannel
-      console.log('channels', userVoiceChannel?.id, botVoiceChannel?.id)
       if (userVoiceChannel && botVoiceChannel && userVoiceChannel.id !== botVoiceChannel.id) {
         return parsedInput.reply(':x: `You must be in the same voice channel as the bot!`')
       }

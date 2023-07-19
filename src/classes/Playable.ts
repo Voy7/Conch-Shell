@@ -7,12 +7,14 @@ export default class Playable {
   public type: PlayableType
   public url: string
   public extraInfo?: PlayableExtraInfo
+  public addSilent: boolean
 
-  constructor(input: CommandInput, type: PlayableType, url: string, extraInfo?: PlayableExtraInfo) {
+  constructor(input: CommandInput, type: PlayableType, url: string, extraInfo?: PlayableExtraInfo, addSilent = false) {
     this.input = input
     this.type = type
     this.url = url
     this.extraInfo = extraInfo
+    this.addSilent = addSilent
   }
 
   get title(): string {

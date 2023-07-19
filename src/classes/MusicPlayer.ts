@@ -15,10 +15,13 @@ export default class MusicPlayer {
   public voiceChannel: VoiceChannel
   public queue: Playable[] = []
   public currentPlayable: Playable | null = null
+  public isLoopMode: boolean = false
   
   private player: voice.AudioPlayer
   private connection: voice.VoiceConnection
   private ytStream: internal.Readable | null = null
+  private isSkipping: boolean = false
+  private leaveTimeout: NodeJS.Timeout | null = null
 
   public readonly VOLUME_MULTIPLIER = 0.75
 
@@ -38,21 +41,12 @@ export default class MusicPlayer {
 
     // Listen for audio player events & errors
     this.player.on(voice.AudioPlayerStatus.Idle, () => {
-      // connection.destroy()
       this.playNextInQueue()
     })
-
-    this.player.on(voice.AudioPlayerStatus.Playing, () => {
-      console.log('Playing')
-    })
-
-    this.player.on(voice.AudioPlayerStatus.Paused, () => {
-      console.log('Paused')
-    })
-
-    // error
+    
     this.player.on('error', error => {
-      console.error(error)
+      this.textChannel.send(`:x: \`An error occurred while playing audio: ${error.message}\``)
+      Logger.error(error)
     })
   }
 
@@ -62,10 +56,12 @@ export default class MusicPlayer {
     if (!this.currentPlayable) return this.playNextInQueue()
 
     // If there's already a song playing, send 'in queue' message
+    if (playable.addSilent) return
     playable.input.reply({ embeds: [{
       color: EnvVariables.EMBED_COLOR_1,
       description: `:track_next: ${Utils.getParsedPosition(this.queue.length)} in queue: [${playable.title}](${playable.url})`
     }]})
+    if (this.isLoopMode) playable.input.reply(':warning: `Warn: This item will not play until Loop Mode is disabled, or the current item is skipped.`')
   }
 
   // Method to disconnect from VC, returns true if it was connected & successful
@@ -91,6 +87,7 @@ export default class MusicPlayer {
 
   // Method to skip to the next song in the queue
   public skip() {
+    this.isSkipping = true
     this.unpause()
     this.player.stop()
   }
@@ -98,13 +95,24 @@ export default class MusicPlayer {
   // Method to actually play the next song in the queue
   // Should only be called when there's nothing playing
   private playNextInQueue() {
-    const playable = this.queue.shift()
+    // const playable = this.queue.shift()
+    const playable = this.isLoopMode && !this.isSkipping
+      ? this.currentPlayable
+      : this.queue.shift()
 
     this.currentPlayable = playable || null
+    this.isSkipping = false
+    
+    if (this.leaveTimeout) clearTimeout(this.leaveTimeout)
 
     if (!playable) {
-      // TODO: Leave voice channel & send done msg
       this.textChannel.send(':white_check_mark: `Everything in the queue has been played.`')
+
+      // If nothing is played for X minutes, leave the VC
+      this.leaveTimeout = setTimeout(() => {
+        this.disconnect()
+      }, 1000 * 1800) // 30 minutes
+
       return
     }
 
@@ -132,6 +140,8 @@ export default class MusicPlayer {
     resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
     this.player.play(resource)
 
+    // Send 'now playing' message only if Loop Mode is false
+    if (this.isLoopMode) return
     playable.input.reply({ embeds: [{
       color: EnvVariables.EMBED_COLOR_2,
       description: `:musical_note: Now playing in ${this.voiceChannel!.name}: [${playable.title}](${playable.url})`
