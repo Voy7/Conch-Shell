@@ -15,6 +15,7 @@ export default class Help extends Command {
     description: 'Play YouTube video or attached file.',
     aliases: ['p'],
     onlyInSameVC: true,
+    onlyInBotChannels: true,
     args: [
       {
         type: 'String',

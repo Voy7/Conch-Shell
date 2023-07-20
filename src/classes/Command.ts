@@ -89,6 +89,14 @@ export default class Command {
       }
     }
 
+    // If command has 'onlyInBotChannels' property, check if command was executed in a bot/music channel
+    if (this.config.onlyInBotChannels) {
+      const name = parsedInput.textChannel.name.toLowerCase()
+      if (!name.includes('bot') && !name.includes('music')) {
+        return parsedInput.reply(':x: `This command can only be used in bot/music channels!`')
+      }
+    }
+
     // Run the command with the ussable parsed input
     this.run(parsedInput)
   }

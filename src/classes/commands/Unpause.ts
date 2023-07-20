@@ -8,7 +8,9 @@ export default class Unpause extends Command {
     command: 'unpause',
     category: 'Music',
     description: 'Resume the music.',
-    aliases: ['resume']
+    aliases: ['resume'],
+    onlyInSameVC: true,
+    onlyInBotChannels: true
   }
 
   public run(input: CommandInput) {

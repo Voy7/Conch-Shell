@@ -1,8 +1,8 @@
 {
   "name": "conch-shell",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "author": "Voy7",
-  "description": "",
+  "description": "A custom made Discord music bot for both YouTube videos and media files.",
   "main": "dist/src/index.js",
   "type": "module",
   "imports": {

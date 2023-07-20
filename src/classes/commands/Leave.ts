@@ -7,7 +7,9 @@ export default class Leave extends Command {
   public config: CommandConfig = {
     command: 'leave',
     category: 'Music',
-    description: 'Disconnect bot from voice channel.'
+    description: 'Disconnect bot from voice channel.',
+    onlyInSameVC: true,
+    onlyInBotChannels: true
   }
 
   public run(input: CommandInput) {

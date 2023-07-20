@@ -66,11 +66,11 @@ export default class MusicPlayer {
 
   // Method to disconnect from VC, returns true if it was connected & successful
   public disconnect(): boolean {
-    if (this.connection?.state.status !== voice.VoiceConnectionStatus.Disconnected) {
+    try {
       this.connection.destroy()
       return true
     }
-    return false
+    catch (error) { return false }
   }
 
   // Method to pause the current song
@@ -106,9 +106,9 @@ export default class MusicPlayer {
     if (this.leaveTimeout) clearTimeout(this.leaveTimeout)
 
     if (!playable) {
-      this.textChannel.send(':white_check_mark: `Everything in the queue has been played.`')
-
       this.isLoopMode = false
+      
+      this.textChannel.send(':white_check_mark: `Everything in the queue has been played.`')
 
       // If nothing is played for X minutes, leave the VC
       this.leaveTimeout = setTimeout(() => {

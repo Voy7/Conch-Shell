@@ -8,7 +8,9 @@ export default class Pause extends Command {
     command: 'pause',
     category: 'Music',
     description: 'Pause the music.',
-    aliases: ['stop']
+    aliases: ['stop'],
+    onlyInSameVC: true,
+    onlyInBotChannels: true
   }
 
   public run(input: CommandInput) {

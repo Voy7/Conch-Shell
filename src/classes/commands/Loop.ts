@@ -7,7 +7,9 @@ export default class Loop extends Command {
   public config: CommandConfig = {
     command: 'loop',
     category: 'Music',
-    description: 'Loop the current item.'
+    description: 'Loop the current item.',
+    onlyInSameVC: true,
+    onlyInBotChannels: true
   }
 
   public run(input: CommandInput) {

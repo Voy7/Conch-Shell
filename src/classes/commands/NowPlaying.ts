@@ -9,7 +9,8 @@ export default class NowPlaying extends Command {
     command: 'nowplaying',
     category: 'Music',
     description: 'Show current song info.',
-    aliases: ['np']
+    aliases: ['np'],
+    onlyInBotChannels: true
   }
 
   public run(input: CommandInput) {

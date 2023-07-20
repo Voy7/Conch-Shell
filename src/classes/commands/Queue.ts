@@ -10,6 +10,7 @@ export default class Queue extends Command {
     category: 'Music',
     description: 'Show the music queue.',
     aliases: ['q'],
+    onlyInBotChannels: true
   }
 
   public run(input: CommandInput) {

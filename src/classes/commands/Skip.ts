@@ -8,7 +8,9 @@ export default class Skip extends Command {
     command: 'skip',
     category: 'Music',
     description: 'Skip to next song in queue.',
-    aliases: ['next']
+    aliases: ['next'],
+    onlyInSameVC: true,
+    onlyInBotChannels: true
   }
 
   public run(input: CommandInput) {
