@@ -1,6 +1,7 @@
 import Command from '#src/classes/Command'
 import EnvVariables from '#src/classes/EnvVariables'
 import BotHandler from '#src/classes/BotHandler'
+import Utils from '#src/classes/Utils'
 import { CommandConfig, CommandInput } from '#src/types'
 
 // Show current song command
@@ -27,7 +28,7 @@ export default class NowPlaying extends Command {
           },
           {
             name: 'Duration',
-            value: `${player.currentPlayable.duration}`,
+            value: `${Utils.getParsedTimestamp(player.currentPlayable.currentDuration)} / ${Utils.getParsedTimestamp(player.currentPlayable.totalDuration)}`,
             inline: true
           },
           {

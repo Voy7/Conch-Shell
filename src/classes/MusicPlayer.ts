@@ -1,6 +1,5 @@
 import { Guild, TextChannel, VoiceChannel } from 'discord.js'
 import * as voice from '@discordjs/voice'
-import ytdl from 'ytdl-core'
 import internal from 'stream'
 import Logger from '#src/classes/Logger'
 import EnvVariables from '#src/classes/EnvVariables'
@@ -95,7 +94,6 @@ export default class MusicPlayer {
   // Method to actually play the next song in the queue
   // Should only be called when there's nothing playing
   private playNextInQueue() {
-    // const playable = this.queue.shift()
     const playable = this.isLoopMode && !this.isSkipping
       ? this.currentPlayable
       : this.queue.shift()
@@ -118,29 +116,8 @@ export default class MusicPlayer {
       return
     }
 
-    // console.log('url', playable.url)
-    let resource: voice.AudioResource | null = null
-    if (playable.type === PlayableType.File) {
-      resource = voice.createAudioResource(playable.url, {
-        // inputType: voice.StreamType.Arbitrary,
-      })
-    }
-    else if (playable.type === PlayableType.YouTube) {
-      this.ytStream = ytdl(playable.url, {
-        filter: 'audioonly',
-        quality: 'highestaudio',
-        highWaterMark: 1 << 25
-      })
-      resource = voice.createAudioResource(this.ytStream, {
-        inlineVolume: true
-      })
-    }
-
-    // Should never be null
-    if (!resource) return Logger.error('Resource was somehow null')
-
-    resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
-    this.player.play(resource)
+    playable.resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
+    this.player.play(playable.resource)
 
     // Send 'now playing' message only if Loop Mode is false
     if (this.isLoopMode) return

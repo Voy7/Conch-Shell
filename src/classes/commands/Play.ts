@@ -1,3 +1,4 @@
+import ytdl from 'ytdl-core'
 import YoutubeAPI from 'simple-youtube-api'
 import Command from '#src/classes/Command'
 import Logger from '#src/classes/Logger'
@@ -63,30 +64,37 @@ export default class Help extends Command {
 
     // If is a YouTube playlist URL
     else if (input.args[0]?.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/playlist\?.+$/)) {
+      input.reply(`:mag_right: \`Fetching playlist data for "${input.args[0]}", please wait...\``)
+
       const playlist = await this.youtubeAPI.getPlaylist(input.args[0])
       if (!playlist) return input.reply(`:x: \`Error: Could not get playlist info for "${input.args[0]}"\``)
       
       const videos: Video[] = await playlist.getVideos()
       if (videos.length === 0) return input.reply(`:x: \`Error: Playlist "${playlist.title}" contains no videos!\``)
 
+      const ytdlInfo = await Promise.all(videos.map(video => ytdl.getInfo(video.url)))
+
       input.reply({ embeds: [{
         color: EnvVariables.EMBED_COLOR_1,
         description: `:track_next:  Added **${videos.length}** videos to the queue from playlist: [${playlist.title}](${playlist.url})`
       }]})
 
-      videos.forEach(video => {
-        const playable = new Playable(input, PlayableType.YouTube, video.url, video, true)
+      videos.forEach((video, index) => {
+        const playable = new Playable(input, PlayableType.YouTube, video.url, { videoInfo: video, ytdlInfo: ytdlInfo[index] }, true)
         musicPlayer.addPlayable(playable)
       })
     }
     
     // If is a YouTube URL
     else if (input.args[0]?.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/)) {
-      const videoInfo = await this.youtubeAPI.getVideo(input.args[0])
-      if (!videoInfo) {
+      const [videoInfo, ytdlInfo] = await Promise.all([
+        this.youtubeAPI.getVideo(input.args[0]),
+        ytdl.getInfo(input.args[0])
+      ])
+      if (!videoInfo || !ytdlInfo) {
         return input.reply(`:x: \`Error: Could not get video info for "${input.args[0]}"\``)
       }
-      const playable = new Playable(input, PlayableType.YouTube, input.args[0], videoInfo)
+      const playable = new Playable(input, PlayableType.YouTube, input.args[0], { videoInfo, ytdlInfo })
       musicPlayer.addPlayable(playable)
     }
 
@@ -96,7 +104,8 @@ export default class Help extends Command {
       try {
         const results = await this.youtubeAPI.searchVideos(input.args[0], 1)
         if (results.length > 0) {
-          const playable = new Playable(input, PlayableType.YouTube, results[0].url, results[0])
+          const ytdlInfo = await ytdl.getInfo(results[0].url)
+          const playable = new Playable(input, PlayableType.YouTube, results[0].url, { videoInfo: results[0], ytdlInfo })
           musicPlayer.addPlayable(playable)
         }
         else input.reply(`:x: \`No search results found for: "${input.args[0]}"\``)

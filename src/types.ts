@@ -10,17 +10,7 @@ import type {
   Collection,
   ApplicationCommandOptionType
 } from 'discord.js'
-
-// export interface CommandClass {
-//   command: string,
-//   description: string,
-//   aliases: string[],
-//   onlyInBotChannels: boolean,
-//   onlyInSameVC: boolean,
-//   run(message?: Message): void,
-  
-//   allAliases: string[]
-// }
+import type ytdl from 'ytdl-core'
 
 export type CommandConfig = {
   command: string,
@@ -62,4 +52,7 @@ export enum PlayableType {
   YouTube = 1
 }
 
-export type PlayableExtraInfo = Video // From simple-youtube-api.d.ts
+export type PlayableExtraInfo = {
+  videoInfo: Video, // From simple-youtube-api.d.ts
+  ytdlInfo: ytdl.videoInfo
+}

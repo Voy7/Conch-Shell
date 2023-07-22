@@ -19,4 +19,16 @@ export default class Utils {
     if (position == 3) return '3rd'
     return `${position}th`
   }
+
+  // Turn seconds into a formatted (1:23:45) timestamp string
+  public static getParsedTimestamp(timeSeconds: number): string {
+    const hours = Math.floor(timeSeconds / 3600)
+    const minutes = Math.floor((timeSeconds - (hours * 3600)) / 60)
+    const seconds = timeSeconds - (hours * 3600) - (minutes * 60)
+
+    let timestamp = ''
+    if (hours > 0) timestamp += `${hours}:`
+    timestamp += `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    return timestamp
+  }
 }
