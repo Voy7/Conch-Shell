@@ -12,21 +12,23 @@ import type {
 } from 'discord.js'
 import type ytdl from 'ytdl-core'
 
+// Command class configuration shape
 export type CommandConfig = {
   command: string,
   category: 'Unknown' | 'Music' | 'Misc',
   description: string,
   aliases?: string[],
+  onlyInBotChannels?: boolean,
+  onlyInSameVC?: boolean,
   args?: {
     type: 'String' | 'Integer' | 'Attachment',
     name: string,
     description: string,
     isRequired: boolean
-  }[],
-  onlyInBotChannels?: boolean,
-  onlyInSameVC?: boolean
+  }[]
 }
 
+// Common command input
 export type CommandInput = {
   user: User,
   guild: Guild,
@@ -36,6 +38,7 @@ export type CommandInput = {
   reply: (payload: string | MessagePayload | MessageReplyOptions) => Promise<void>
 }
 
+// Slash command data for registering on Discord
 export type SlashCommandData = {
   name: string,
   description: string,
@@ -47,11 +50,10 @@ export type SlashCommandData = {
   }[]
 }
 
-export enum PlayableType {
-  File = 0,
-  YouTube = 1
-}
+// Playable types enum
+export enum PlayableType { File, YouTube }
 
+// Extra info for Playables, currently just for YouTube
 export type PlayableExtraInfo = {
   videoInfo: Video, // From simple-youtube-api.d.ts
   ytdlInfo: ytdl.videoInfo

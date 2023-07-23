@@ -1,16 +1,12 @@
-// Import all modules in /commands/ and register them
-
 import { readdirSync } from 'fs'
-// import { join } from 'path'
 import { REST, Routes } from 'discord.js'
 import BotHandler from '#src/classes/BotHandler'
 import EnvVariables from '#src/classes/EnvVariables'
 import Logger from '#src/classes/Logger'
-// import type { CommandClass } from '#src/types'
-
-import type Command from '#src/classes/Command'
+import Command from '#src/classes/Command'
 import { SlashCommandData } from '#src/types'
 
+// Commands handler class, handles all command inputs
 export default class CommandsHandler {
   public commands: Command[] = []
 
@@ -42,9 +38,11 @@ export default class CommandsHandler {
     })
   }
 
+  // Import all /commands/ classes and register them
   private async initializeCommands() {
-    Logger.info('Initializing commands...')
+    Logger.debug('Initializing commands...')
 
+    // Import all commands
     const files = readdirSync('./src/classes/commands')
     for (const file of files) {
       const commandClass = new (await import(`#src/classes/commands/${file.split('.')[0]}`)).default() as Command
@@ -52,10 +50,10 @@ export default class CommandsHandler {
       this.commands.push(commandClass)
     }
 
-    // Register commands on Discord
+    // Register slash commands on Discord
     const rest = new REST().setToken(EnvVariables.BOT_TOKEN)
     try {
-      Logger.info('Registering application slash commands...')
+      Logger.debug('Registering application slash commands...')
 
       const commandsData: SlashCommandData[] = []
 

@@ -44,7 +44,7 @@ export default class Help extends Command {
 
     const userVoiceChannel = Utils.getUserVoiceChannel(input.guild, input.user.id)
     if (!userVoiceChannel) {
-      input.reply('You must be in a voice channel to use this command!')
+      input.reply(':x: `You must be in a voice channel to use this command!`')
       return
     }
 

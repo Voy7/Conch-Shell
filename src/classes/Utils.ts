@@ -1,12 +1,13 @@
 import { ChannelType, type Guild, type VoiceChannel } from 'discord.js'
 
+// Collection of utility functions
 export default class Utils {
+  // Get the voice channel of a user in a guild
   public static getUserVoiceChannel(guild: Guild, userID: string): VoiceChannel | null {
     let voiceChannel: VoiceChannel | null = null
-
     guild.channels.cache.forEach(channel => {
       if (channel.type === ChannelType.GuildVoice && channel.members.has(userID)) {
-        voiceChannel = channel as VoiceChannel
+        voiceChannel = channel
       }
     })
     return voiceChannel

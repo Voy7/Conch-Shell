@@ -1,7 +1,8 @@
 import EnvVariables from "#src/classes/EnvVariables"
+import 'colors'
 
-// Logger class, singleton exported below
-class Logger {
+// Logger class, singleton
+export default new class Logger {
   public info(message: any) { // Informational messages
     this.send(message, 'INFO'.cyan)
   }
@@ -29,6 +30,3 @@ class Logger {
     )
   }
 }
-
-// Export singleton
-export default new Logger()

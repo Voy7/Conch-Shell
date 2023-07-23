@@ -1,13 +1,11 @@
 import { Guild, TextChannel, VoiceChannel } from 'discord.js'
 import * as voice from '@discordjs/voice'
-import internal from 'stream'
 import Logger from '#src/classes/Logger'
 import EnvVariables from '#src/classes/EnvVariables'
 import Playable from '#src/classes/Playable'
 import Utils from '#src/classes/Utils'
-import { PlayableType } from '#src/types'
 
-// Music player class
+// Music player handler class, 1 per guild
 export default class MusicPlayer {
   public guild: Guild
   public textChannel: TextChannel
@@ -18,11 +16,8 @@ export default class MusicPlayer {
   
   private player: voice.AudioPlayer
   private connection: voice.VoiceConnection
-  private ytStream: internal.Readable | null = null
   private isSkipping: boolean = false
   private leaveTimeout: NodeJS.Timeout | null = null
-
-  public readonly VOLUME_MULTIPLIER = 0.75
 
   constructor(guild: Guild, textChannel: TextChannel, voiceChannel: VoiceChannel) {
     this.guild = guild
@@ -116,7 +111,7 @@ export default class MusicPlayer {
       return
     }
 
-    playable.resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
+    // Actually start to play the song
     this.player.play(playable.resource)
 
     // Send 'now playing' message only if Loop Mode is false

@@ -1,6 +1,4 @@
-// Conch-Shell index file
-
-import 'colors'
+// Conch-Shell entry point
 
 import Logger from '#src/classes/Logger'
 import packageJSON from '#root/package.json' assert { type: 'json' }

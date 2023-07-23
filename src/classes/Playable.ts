@@ -2,7 +2,7 @@ import * as voice from '@discordjs/voice'
 import ytdl from 'ytdl-core'
 import { CommandInput, PlayableType, PlayableExtraInfo } from '#src/types'
 
-// Queue item Playable class
+// Queue item "Playable" class
 export default class Playable {
   public input: CommandInput
   public type: PlayableType
@@ -10,6 +10,8 @@ export default class Playable {
   public extraInfo?: PlayableExtraInfo
   public addSilent: boolean
   public resource: voice.AudioResource
+
+  public readonly VOLUME_MULTIPLIER = 0.75
 
   constructor(input: CommandInput, type: PlayableType, url: string, extraInfo?: PlayableExtraInfo, addSilent = false) {
     this.input = input
@@ -31,6 +33,9 @@ export default class Playable {
     else { // is (probably) File type
       this.resource = voice.createAudioResource(this.url)
     }
+
+    // Set a lower volume, 100% seems to cause clipping
+    this.resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
   }
 
   // Get the "title" of the Playable
@@ -55,6 +60,7 @@ export default class Playable {
     return 0 // TODO: get duration of files
   }
 
+  // Get's the YouTube video's thumbnail URL, or a default file icon
   get thumbnail(): string {
     if (this.type === PlayableType.YouTube) {
       return this.extraInfo?.videoInfo.thumbnails.high.url!
@@ -62,6 +68,7 @@ export default class Playable {
     return 'https://cdn.discordapp.com/attachments/692211326503616594/702426388573061150/file_icon.jpg'
   }
 
+  // Get's the YouTube video's channel name, or "N/A"
   get channel(): string {
     if (this.type === PlayableType.YouTube) {
       return this.extraInfo?.videoInfo.channel!.title!

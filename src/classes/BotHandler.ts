@@ -6,33 +6,34 @@ import Logger from '#src/classes/Logger'
 
 // Main bot handler class, exports singleton
 export default new class BotHandler {
-  public client = new Client({ intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildPresences,
-    GatewayIntentBits.GuildVoiceStates
-  ]})
+  public client = new Client({
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+      GatewayIntentBits.GuildMembers,
+      GatewayIntentBits.GuildVoiceStates
+    ],
+    presence: {
+      status: 'online',
+      activities: [{
+        name: `out for ${EnvVariables.BOT_PREFIX}help`,
+        type: ActivityType.Watching
+      }]
+    }
+  })
   public commandsHandler: CommandsHandler | null = null
-  // private musicPlayers: MusicPlayer[] = []
-  public musicPlayers: MusicPlayer[] = []
+  private musicPlayers: MusicPlayer[] = []
 
   constructor() {
+    // Once bot is logged in, initialize commands handler
     this.client.on('ready', () => {
       Logger.info(`Bot now logged in: ${this.client.user?.tag}`)
 
-      // Set bot's activity
-      this.client.user?.setActivity({
-        name: `out for ${EnvVariables.BOT_PREFIX}help`,
-        type: ActivityType.Watching
-      })
-
-      // Initialize commands
       this.commandsHandler = new CommandsHandler()
     })
 
-    // If bot leaves a VC, delete that guild's music player
+    // If bot leaves/moves VC, either delete music player or update player's voice channel
     this.client.on('voiceStateUpdate', (oldState, newState) => {
       // If it's not the bot, return
       if (oldState.member?.id !== this.client.user?.id) return
@@ -55,6 +56,7 @@ export default new class BotHandler {
     this.client.login(EnvVariables.BOT_TOKEN)
   }
 
+  // Create new music player for a guild if one doesn't exist, and return it
   public createMusicPlayer(guild: Guild, textChannel: TextChannel, voiceChannel: VoiceChannel): MusicPlayer {
     const existingPlayer = this.getMusicPlayer(guild.id)
     if (existingPlayer) return existingPlayer
@@ -63,14 +65,15 @@ export default new class BotHandler {
     return newPlayer
   }
 
+  // Get music player for a guild, or null if one doesn't exist
   public getMusicPlayer(guildID: string): MusicPlayer | null {
     return this.musicPlayers.find(player => player.guild.id === guildID) ?? null
   }
 
+  // Delete music player for a guild
   public deleteMusicPlayer(guildID: string) {
     const musicPlayer = this.getMusicPlayer(guildID)
     if (!musicPlayer) return
-    // musicPlayer.prepForDelete()
     this.musicPlayers = this.musicPlayers.filter(player => player.guild.id !== guildID)
   }
 }

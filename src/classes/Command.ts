@@ -4,8 +4,9 @@ import Utils from '#src/classes/Utils'
 import BotHandler from '#src/classes/BotHandler'
 import { CommandConfig, CommandInput, SlashCommandData } from '#src/types'
 
-// Base class for all commands
+// Base class for all commands to extend
 export default class Command {
+  // Should be overriden in child classes, is here just to not throw errors
   public config: CommandConfig = {
     command: '',
     category: 'Unknown',
