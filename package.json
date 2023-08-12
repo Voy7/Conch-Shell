@@ -15,7 +15,6 @@
     "build": "rimraf ./dist && tsc"
   },
   "devDependencies": {
-    "@types/fluent-ffmpeg": "^2.1.21",
     "@types/node": "^18.15.11",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.3"
