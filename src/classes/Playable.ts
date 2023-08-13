@@ -1,5 +1,6 @@
 import * as voice from '@discordjs/voice'
 import ytdl from 'ytdl-core'
+import BotHandler from '#src/classes/BotHandler'
 import { CommandInput, PlayableType, PlayableExtraInfo } from '#src/types'
 
 // Queue item "Playable" class
@@ -21,8 +22,14 @@ export default class Playable {
     this.addSilent = addSilent
 
     // Create audio resource:
+    this.resource = this.createAudioResource()
+  }
+
+  private createAudioResource(): voice.AudioResource {
+    let resource: voice.AudioResource
+
     if (this.type === PlayableType.YouTube) { // is YouTube video
-      this.resource = voice.createAudioResource(ytdl(this.url, {
+      resource = voice.createAudioResource(ytdl(this.url, {
         filter: 'audioonly',
         quality: 'highestaudio',
         highWaterMark: 1 << 25
@@ -31,11 +38,23 @@ export default class Playable {
       })
     }
     else { // is (probably) File type
-      this.resource = voice.createAudioResource(this.url)
-    }
+      resource = voice.createAudioResource(this.url)
 
+    }
+    
     // Set a lower volume, 100% seems to cause clipping
-    this.resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
+    resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
+
+    // If the resource ended, reset it so it can be played again in loop mode
+    resource.playStream.on('end', () => {
+      const musicPlayer = BotHandler.getMusicPlayer(this.input.guild.id)
+      if (musicPlayer?.isLoopMode) {
+        this.resource = this.createAudioResource()
+        this.resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
+      }
+    })
+    
+    return resource
   }
 
   // Get the "title" of the Playable
