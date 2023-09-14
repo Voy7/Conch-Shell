@@ -12,6 +12,8 @@ export default new class EnvVariables {
   public YOUTUBE_API_KEY: string = process.env.YOUTUBE_API_KEY || ''
   public BOT_PREFIX: string = process.env.BOT_PREFIX || '_'
   public NO_BOT_CHANNELS_CHECK: boolean = process.env.NO_BOT_CHANNELS_CHECK == 'true' || false
+  public LEAVE_TIMEOUT_IN_SECONDS: number = parseInt(process.env.LEAVE_TIMEOUT_IN_SECONDS || '1800')
+  public LOG_SONGS_IN_CONSOLE: boolean = process.env.LOG_SONGS_IN_CONSOLE == 'false' ? false : true
   public EMBED_COLOR_1: number = parseInt(process.env.EMBED_COLOR_1 || '0x9f5cc4') // Light purple
   public EMBED_COLOR_2: number = parseInt(process.env.EMBED_COLOR_2 || '0x00bfff') // Light blue
 }

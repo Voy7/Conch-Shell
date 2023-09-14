@@ -46,6 +46,10 @@ export default class MusicPlayer {
 
   // Add a Playable to the queue, and play it if there's nothing playing
   public addPlayable(playable: Playable) {
+    if (EnvVariables.LOG_SONGS_IN_CONSOLE) {
+      Logger.info(`${playable.input.user.username} in ${playable.input.guild.name} added to queue: ${playable.title} (${playable.url})`)
+    }
+
     this.queue.push(playable)
     if (!this.currentPlayable) return this.playNextInQueue()
 
@@ -106,8 +110,16 @@ export default class MusicPlayer {
       // If nothing is played for X minutes, leave the VC
       this.leaveTimeout = setTimeout(() => {
         this.disconnect()
-      }, 1000 * 1800) // 30 minutes
+      }, EnvVariables.LEAVE_TIMEOUT_IN_SECONDS * 1000)
 
+      return
+    }
+
+    // In rare cases, the resource may have "ended", so check for it
+    if (playable.resource.ended) {
+      Logger.warn('Cannot play audio resource, it has already ended, skipping to next song...')
+      playable.input.reply(':x: `An error occurred in the audio resource, please try to play it again.`')
+      this.playNextInQueue()
       return
     }
 

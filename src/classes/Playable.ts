@@ -59,10 +59,20 @@ export default class Playable {
 
   // Get the "title" of the Playable
   get title(): string {
+    let title = 'Unknown Title'
     if (this.type === PlayableType.YouTube) {
-      return this.extraInfo?.videoInfo.title || 'Unknown Title'
+      title = this.extraInfo?.videoInfo.title || 'Unknown Title'
     }
-    return this.url.split('/').pop() || 'Unknown File'
+    else title = this.url.split('/').pop() || 'Unknown File'
+
+    // Remove the most common HTML entities from the title
+    title = title.replace(/&amp;/g, '&')
+    title = title.replace(/&quot;/g, '"')
+    title = title.replace(/&apos;/g, "'")
+    title = title.replace(/&lt;/g, '<')
+    title = title.replace(/&gt;/g, '>')
+
+    return title
   }
 
   // Get current duration of the Playable in seconds, rounded down

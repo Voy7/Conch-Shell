@@ -57,7 +57,7 @@ export default class Help extends Command {
     }
 
     // If is a URL to a file (Any http(s) link with a audio/video file extension ending)
-    else if (input.args[0]?.match(/^(http(s)?:\/\/).+\.(mp3|mp4|wav|ogg|webm|flac|mov|avi|wmv|mkv)$/)) {
+    else if (input.args[0]?.toLowerCase().match(/^(http(s)?:\/\/).+\.(mp3|mp4|wav|ogg|webm|flac|mov|avi|wmv|mkv)$/)) {
       const playable = new Playable(input, PlayableType.File, input.args[0])
       musicPlayer.addPlayable(playable)
     }
