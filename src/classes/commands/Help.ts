@@ -29,9 +29,10 @@ export default class Help extends Command {
       fields: [
         { name: ':notes: Music Commands', value: musicCommands.map(command => `\`${EnvVariables.BOT_PREFIX}${command.config.command}\``).join(', ') },
         { name: ':gear: Miscellaneous Commands', value: miscCommands.map(command => `\`${EnvVariables.BOT_PREFIX}${command.config.command}\``).join(', ') },
-        { name: ':link: Bot Invite Link', value: `[Click here for an invite link](${this.inviteLink})` }
+        { name: ':link: Bot Invite Link', value: `[Click here for an invite link](${this.inviteLink})` },
+        { name: ':computer: Source Code', value: `[View source code on GitHub](${packageJSON.repository.url})` }
       ],
-      footer: { text: `Made by Voy7 - Version ${packageJSON.version}` }
+      footer: { text: `Made by ${packageJSON.author} • Version ${packageJSON.version}` }
     }]})
   }
 }

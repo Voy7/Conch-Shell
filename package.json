@@ -1,6 +1,6 @@
 {
   "name": "conch-shell",
-  "version": "1.4.1",
+"version": "1.4.2",
   "author": "Voy7",
   "description": "A custom made Discord music bot for both YouTube videos and media files.",
   "main": "dist/src/index.js",
@@ -13,6 +13,10 @@
     "start": "npm run build && cross-env PROJECT_MODE=production node .",
     "dev": "npm run build && cross-env PROJECT_MODE=development node .",
     "build": "rimraf ./dist && tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Voy7/Conch-Shell"
   },
   "devDependencies": {
     "@types/node": "^18.15.11",

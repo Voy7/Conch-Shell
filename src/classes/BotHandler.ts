@@ -3,6 +3,7 @@ import EnvVariables from '#src/classes/EnvVariables'
 import CommandsHandler from '#src/classes/CommandsHandler'
 import MusicPlayer from '#src/classes/MusicPlayer'
 import Logger from '#src/classes/Logger'
+import packageJSON from '#root/package.json' assert { type: 'json' }
 
 // Main bot handler class, exports singleton
 export default new class BotHandler {
@@ -17,7 +18,7 @@ export default new class BotHandler {
     presence: {
       status: 'online',
       activities: [{
-        name: `out for ${EnvVariables.BOT_PREFIX}help`,
+        name: `out for ${EnvVariables.BOT_PREFIX}help • v${packageJSON.version}`,
         type: ActivityType.Watching
       }]
     }
