@@ -2,6 +2,12 @@ import * as voice from '@discordjs/voice'
 import ytdl from 'ytdl-core'
 import BotHandler from '#src/classes/BotHandler'
 import { CommandInput, PlayableType, PlayableExtraInfo } from '#src/types'
+import { PassThrough } from 'stream'
+
+// Import and set up ffmpeg
+import ffmpeg from 'fluent-ffmpeg'
+import { path } from '@ffmpeg-installer/ffmpeg'
+ffmpeg.setFfmpegPath(path)
 
 // Queue item "Playable" class
 export default class Playable {
@@ -11,6 +17,7 @@ export default class Playable {
   public extraInfo?: PlayableExtraInfo
   public addSilent: boolean
   public resource: voice.AudioResource
+  public startedTimeSeconds: number = 0
 
   public readonly VOLUME_MULTIPLIER = 0.75
 
@@ -25,22 +32,33 @@ export default class Playable {
     this.resource = this.createAudioResource()
   }
 
-  private createAudioResource(): voice.AudioResource {
+  public createAudioResource(timeSeconds: number = 0): voice.AudioResource {
+    this.startedTimeSeconds = timeSeconds
     let resource: voice.AudioResource
 
     if (this.type === PlayableType.YouTube) { // is YouTube video
-      resource = voice.createAudioResource(ytdl(this.url, {
+      const stream = ffmpeg({ source: ytdl(this.url, {
         filter: 'audioonly',
         quality: 'highestaudio',
         highWaterMark: 1 << 25
-      }), {
+      })})
+        .toFormat('wav')
+        .setStartTime(timeSeconds)
+        .inputOptions([ '-re' ])
+        .pipe()
+      resource = voice.createAudioResource(stream as any, {
         inlineVolume: true
       })
     }
     else { // is (probably) File type
-      resource = voice.createAudioResource(this.url)
-
+      const stream = ffmpeg({ source: this.url })
+        .toFormat('wav')
+        .setStartTime(timeSeconds)
+        .inputOptions([ '-re' ])
+        .pipe()
+      resource = voice.createAudioResource(stream as any)
     }
+    resource.playStream.removeAllListeners()
     
     // Set a lower volume, 100% seems to cause clipping
     resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
@@ -78,7 +96,7 @@ export default class Playable {
   // Get current duration of the Playable in seconds, rounded down
   // If Playable hasn't started playing yet, duration will be 0
   get currentDuration(): number {
-    return Math.floor(this.resource.playbackDuration / 1000)
+    return Math.floor((this.resource.playbackDuration / 1000) + this.startedTimeSeconds)
   }
 
   // Get total/max duration of the Playable in seconds, rounded down

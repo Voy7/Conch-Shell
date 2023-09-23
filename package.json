@@ -1,6 +1,6 @@
 {
   "name": "conch-shell",
-"version": "1.4.2",
+  "version": "1.5.0-test",
   "author": "Voy7",
   "description": "A custom made Discord music bot for both YouTube videos and media files.",
   "main": "dist/src/index.js",
@@ -25,11 +25,14 @@
   },
   "dependencies": {
     "@discordjs/voice": "^0.16.0",
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@types/fluent-ffmpeg": "^2.1.22",
     "colors": "^1.4.0",
     "cross-env": "^7.0.3",
     "discord.js": "^14.11.0",
     "dotenv": "^16.0.3",
     "ffmpeg-static": "^5.1.0",
+    "fluent-ffmpeg": "^2.1.2",
     "libsodium-wrappers": "^0.7.11",
     "opusscript": "^0.0.8",
     "rimraf": "^4.4.1",

@@ -32,4 +32,20 @@ export default class Utils {
     timestamp += `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
     return timestamp
   }
+
+  // Turn an input timestamp string into seconds, or null if invalid
+  // Possible inputs: 90, 1:30, 01:30, 090, etc -> 90
+  public static timeStampToSeconds(timestamp: string): number | null {
+    const timeParts = timestamp.split(':')
+    if (timeParts.length > 3) return null
+
+    let seconds = 0
+    for (let i = 0; i < timeParts.length; i++) {
+      const timePart = timeParts[timeParts.length - 1 - i]
+      const timePartSeconds = parseInt(timePart)
+      if (isNaN(timePartSeconds)) return null
+      seconds += timePartSeconds * (60 ** i)
+    }
+    return seconds
+  }
 }

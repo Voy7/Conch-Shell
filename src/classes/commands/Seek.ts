@@ -1,7 +1,13 @@
+import ytdl from 'ytdl-core'
 import Command from '#src/classes/Command'
 import BotHandler from '#src/classes/BotHandler'
 import Utils from '#src/classes/Utils'
 import { CommandConfig, CommandInput } from '#src/types'
+
+// Import and set up ffmpeg
+import ffmpeg from 'fluent-ffmpeg'
+import { path } from '@ffmpeg-installer/ffmpeg'
+ffmpeg.setFfmpegPath(path)
 
 // Seek to specified time command
 export default class Seek extends Command {
@@ -20,26 +26,28 @@ export default class Seek extends Command {
   }
 
   public run(input: CommandInput) {
-    input.reply(':x: `This command is not implemented yet.`')
+    const player = BotHandler.getMusicPlayer(input.guild.id)
+    if (player) {
+      if (!player.currentPlayable) {
+        input.reply(':x: `Bot is not playing anything.`')
+        return
+      }
 
-    return // TODO
-    
-    // const player = BotHandler.getMusicPlayer(input.guild.id)
-    // if (player && player.currentPlayable) {
-    //   const time = parseInt(input.args[0] || '0')
+      if (!input.args[0]) {
+        input.reply(':x: `Please specify a timestamp to seek to.`')
+        return
+      }
 
-    //   const seekTime = time * 1000
-    //   const skipBytes = Math.floor(time * 48000 * 2 * 2); // 48000 samples per second, 2 bytes per sample, 2 channels (stereo)
-    //   const audioStream = player.currentPlayable.resource.playStream
-
-    //   audioStream.on('readable', () => {
-    //     // Read and discard the first n bytes to skip to the desired time
-    //     audioStream.read(skipBytes)
-    //   })
+      const timeSeconds = Utils.timeStampToSeconds(input.args[0])
       
-    //   input.reply(`:fast_forward: \`Seeked to ${time}.\``)
-    //   // input.reply(`:fast_forward: \`Seeked to ${Utils.getParsedTime(time)}.\``)
-    // }
-    // else input.reply(':x: `Bot is not playing anything.`')
+      if (timeSeconds === null) {
+        input.reply(`:x: \`"${input.args[0]}" is not a valid timestamp.\``)
+        return
+      }
+
+      player.seek(timeSeconds)
+      input.reply(`:fast_forward: \`Seeking to ${Utils.getParsedTimestamp(timeSeconds)}...\``)
+    }
+    else input.reply(':x: `Bot is not playing anything.`')
   }
 }

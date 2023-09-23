@@ -14,7 +14,8 @@ export default class MusicPlayer {
   public currentPlayable: Playable | null = null
   public isLoopMode: boolean = false
   
-  private player: voice.AudioPlayer
+  // private player: voice.AudioPlayer
+  public player: voice.AudioPlayer
   private connection: voice.VoiceConnection
   private isSkipping: boolean = false
   private leaveTimeout: NodeJS.Timeout | null = null
@@ -37,7 +38,7 @@ export default class MusicPlayer {
     this.player.on(voice.AudioPlayerStatus.Idle, () => {
       this.playNextInQueue()
     })
-    
+
     this.player.on('error', error => {
       this.textChannel.send(`:x: \`An error occurred while playing audio: ${error.message}\``)
       Logger.error(error)
@@ -90,6 +91,14 @@ export default class MusicPlayer {
     this.player.stop()
   }
 
+  // Method to seek in current song
+  public seek(timeSeconds: number) {
+    if (!this.currentPlayable) return
+    this.currentPlayable.resource.playStream.destroy()
+    this.currentPlayable.resource = this.currentPlayable.createAudioResource(timeSeconds)
+    this.player.play(this.currentPlayable.resource)
+  }
+
   // Method to actually play the next song in the queue
   // Should only be called when there's nothing playing
   private playNextInQueue() {
@@ -119,6 +128,8 @@ export default class MusicPlayer {
     if (playable.resource.ended) {
       Logger.warn('Cannot play audio resource, it has already ended, skipping to next song...')
       playable.input.reply(':x: `An error occurred in the audio resource, please try to play it again.`')
+      this.queue.shift()
+      this.isLoopMode = false
       this.playNextInQueue()
       return
     }
