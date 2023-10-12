@@ -1,5 +1,6 @@
 import ytdl from 'ytdl-core'
 import Command from '#src/classes/Command'
+import EnvVariables from '#src/classes/EnvVariables'
 import BotHandler from '#src/classes/BotHandler'
 import Utils from '#src/classes/Utils'
 import { CommandConfig, CommandInput } from '#src/types'
@@ -26,6 +27,11 @@ export default class Seek extends Command {
   }
 
   public run(input: CommandInput) {
+    if (EnvVariables.PROJECT_MODE === 'production') {
+      input.reply(':x: `This command is not implemented yet.`')
+      return
+    }
+
     const player = BotHandler.getMusicPlayer(input.guild.id)
     if (player) {
       if (!player.currentPlayable) {

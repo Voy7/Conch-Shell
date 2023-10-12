@@ -6,7 +6,14 @@ import EnvVariables from '#src/classes/EnvVariables'
 import BotHandler from '#src/classes/BotHandler'
 import Playable from '#src/classes/Playable'
 import Utils from '#src/classes/Utils'
-import { CommandConfig, CommandInput, PlayableType } from '#src/types'
+import { CommandConfig, CommandInput, PlayableType, FileInfo } from '#src/types'
+
+// Import and set up ffmpeg
+import ffmpeg from 'fluent-ffmpeg'
+import { path as ffmpegPath } from '@ffmpeg-installer/ffmpeg'
+import { path as ffprobePath } from '@ffprobe-installer/ffprobe'
+ffmpeg.setFfmpegPath(ffmpegPath)
+ffmpeg.setFfprobePath(ffprobePath)
 
 // Play command
 export default class Help extends Command {
@@ -52,13 +59,11 @@ export default class Help extends Command {
     
     // If file is attached, add it to the queue
     if (input.attachment) {
-      const playable = new Playable(input, PlayableType.File, input.attachment.url)
-      musicPlayer.addPlayable(playable)
-    }
-
-    // If is a URL to a file (Any http(s) link with a audio/video file extension ending)
-    else if (input.args[0]?.toLowerCase().match(/^(http(s)?:\/\/).+\.(mp3|mp4|wav|ogg|webm|flac|mov|avi|wmv|mkv)$/)) {
-      const playable = new Playable(input, PlayableType.File, input.args[0])
+      const fileInfo = await this.getFileInfo(input.attachment.url)
+      if (!fileInfo) {
+        return input.reply(`:x: \`Error: The file provided is not valid.\``)
+      }
+      const playable = new Playable(input, PlayableType.File, input.attachment.url, { fileInfo })
       musicPlayer.addPlayable(playable)
     }
 
@@ -103,6 +108,16 @@ export default class Help extends Command {
       catch (error: any) { this.handleYouTubeError(error, input) }
     }
 
+    // If is a URL starting with http(s)://, act as file URL
+    else if (input.args[0]?.match(/^(https?:\/\/).+$/)) {
+      const fileInfo = await this.getFileInfo(input.args[0])
+      if (!fileInfo) {
+        return input.reply(`:x: \`Error: The file provided is not valid.\``)
+      }
+      const playable = new Playable(input, PlayableType.File, input.args[0], { fileInfo })
+      musicPlayer.addPlayable(playable)
+    }
+
     // If all else fails, search for a YouTube video
     else {
       input.reply(`:mag_right: \`Searching "${input.args[0]}"...\``)
@@ -117,6 +132,27 @@ export default class Help extends Command {
       }
       catch (error: any) { this.handleYouTubeError(error, input) }
     }
+  }
+
+  // Get extra info from file
+  private async getFileInfo(url: string): Promise<FileInfo | null> {
+    return new Promise((resolve, reject) => {
+      ffmpeg.ffprobe(url, (error, metadata) => {
+        if (error) {
+          Logger.warn(error)
+          resolve(null)
+          return
+        }
+        const name = metadata?.format?.filename ? metadata.format.filename.split('/').pop()?.split('?')[0] : null
+        const durationSeconds = metadata?.format?.duration ? Math.floor(metadata.format.duration) : null
+        if (!name || !durationSeconds) {
+          Logger.warn('File info is missing some information.')
+          resolve(null)
+          return
+        }
+        resolve({ name, durationSeconds })
+      })
+    })
   }
 
   // Handle YouTube API error messages

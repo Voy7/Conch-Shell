@@ -2,12 +2,6 @@ import * as voice from '@discordjs/voice'
 import ytdl from 'ytdl-core'
 import BotHandler from '#src/classes/BotHandler'
 import { CommandInput, PlayableType, PlayableExtraInfo } from '#src/types'
-import { PassThrough } from 'stream'
-
-// Import and set up ffmpeg
-import ffmpeg from 'fluent-ffmpeg'
-import { path } from '@ffmpeg-installer/ffmpeg'
-ffmpeg.setFfmpegPath(path)
 
 // Queue item "Playable" class
 export default class Playable {
@@ -37,28 +31,17 @@ export default class Playable {
     let resource: voice.AudioResource
 
     if (this.type === PlayableType.YouTube) { // is YouTube video
-      const stream = ffmpeg({ source: ytdl(this.url, {
+      resource = voice.createAudioResource(ytdl(this.url, {
         filter: 'audioonly',
         quality: 'highestaudio',
         highWaterMark: 1 << 25
-      })})
-        .toFormat('wav')
-        .setStartTime(timeSeconds)
-        // .inputOptions([ '-re' ])
-        .pipe()
-      resource = voice.createAudioResource(stream as any, {
-        // inlineVolume: true
+      }), {
+        inlineVolume: true
       })
     }
     else { // is (probably) File type
-      const stream = ffmpeg({ source: this.url })
-        .toFormat('wav')
-        .setStartTime(timeSeconds)
-        // .inputOptions([ '-re' ])
-        .pipe()
-      resource = voice.createAudioResource(stream as any)
+      resource = voice.createAudioResource(this.url)
     }
-    resource.playStream.removeAllListeners()
     
     // Set a lower volume, 100% seems to cause clipping
     resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
@@ -78,10 +61,8 @@ export default class Playable {
   // Get the "title" of the Playable
   get title(): string {
     let title = 'Unknown Title'
-    if (this.type === PlayableType.YouTube) {
-      title = this.extraInfo?.videoInfo.title || 'Unknown Title'
-    }
-    else title = this.url.split('/').pop() || 'Unknown File'
+    if (this.extraInfo?.videoInfo?.title) title = this.extraInfo.videoInfo.title
+    else if (this.extraInfo?.fileInfo?.name) title = this.extraInfo.fileInfo.name
 
     // Remove the most common HTML entities from the title
     title = title.replace(/&amp;/g, '&')
@@ -101,24 +82,27 @@ export default class Playable {
 
   // Get total/max duration of the Playable in seconds, rounded down
   get totalDuration(): number {
-    if (this.type === PlayableType.YouTube) {
-      return parseInt(this.extraInfo?.ytdlInfo.videoDetails.lengthSeconds!) || 0
+    if (this.extraInfo?.ytdlInfo?.videoDetails.lengthSeconds) { // is YouTube video
+      return parseInt(this.extraInfo.ytdlInfo.videoDetails.lengthSeconds)
     }
-    return 0 // TODO: get duration of files
+    if (this.extraInfo?.fileInfo?.durationSeconds) { // is File
+      return this.extraInfo.fileInfo.durationSeconds
+    }
+    return 0
   }
 
   // Get's the YouTube video's thumbnail URL, or a default file icon
   get thumbnail(): string {
-    if (this.type === PlayableType.YouTube) {
-      return this.extraInfo?.videoInfo.thumbnails.high.url!
+    if (this.extraInfo?.videoInfo?.thumbnails.high.url) { // is YouTube video
+      return this.extraInfo.videoInfo.thumbnails.high.url
     }
-    return 'https://cdn.discordapp.com/attachments/692211326503616594/702426388573061150/file_icon.jpg'
+    return 'https://cdn.discordapp.com/attachments/692211326503616594/702426388573061150/file_icon.jpg' // is File
   }
 
   // Get's the YouTube video's channel name, or "N/A"
   get channel(): string {
-    if (this.type === PlayableType.YouTube) {
-      return this.extraInfo?.videoInfo.channel!.title!
+    if (this.extraInfo?.videoInfo?.channel.title) { // is YouTube video
+      return this.extraInfo.videoInfo.channel.title
     }
     return 'N/A'
   }

@@ -55,6 +55,12 @@ export enum PlayableType { File, YouTube }
 
 // Extra info for Playables, currently just for YouTube
 export type PlayableExtraInfo = {
-  videoInfo: Video, // From simple-youtube-api.d.ts
-  ytdlInfo: ytdl.videoInfo
+  videoInfo?: Video, // From simple-youtube-api.d.ts
+  ytdlInfo?: ytdl.videoInfo,
+  fileInfo?: FileInfo
+}
+
+export type FileInfo = {
+  name: string,
+  durationSeconds: number
 }
