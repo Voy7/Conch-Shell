@@ -45,7 +45,7 @@ export default class Playable {
         .toFormat('wav')
         .setStartTime(timeSeconds)
         // .inputOptions([ '-re' ])
-        // .pipe()
+        .pipe()
       resource = voice.createAudioResource(stream as any, {
         // inlineVolume: true
       })
@@ -55,7 +55,7 @@ export default class Playable {
         .toFormat('wav')
         .setStartTime(timeSeconds)
         // .inputOptions([ '-re' ])
-        // .pipe()
+        .pipe()
       resource = voice.createAudioResource(stream as any)
     }
     resource.playStream.removeAllListeners()
