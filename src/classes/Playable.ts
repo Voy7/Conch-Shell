@@ -44,18 +44,18 @@ export default class Playable {
       })})
         .toFormat('wav')
         .setStartTime(timeSeconds)
-        .inputOptions([ '-re' ])
-        .pipe()
+        // .inputOptions([ '-re' ])
+        // .pipe()
       resource = voice.createAudioResource(stream as any, {
-        inlineVolume: true
+        // inlineVolume: true
       })
     }
     else { // is (probably) File type
       const stream = ffmpeg({ source: this.url })
         .toFormat('wav')
         .setStartTime(timeSeconds)
-        .inputOptions([ '-re' ])
-        .pipe()
+        // .inputOptions([ '-re' ])
+        // .pipe()
       resource = voice.createAudioResource(stream as any)
     }
     resource.playStream.removeAllListeners()
