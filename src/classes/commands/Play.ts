@@ -11,7 +11,8 @@ import { CommandConfig, CommandInput, PlayableType, FileInfo } from '#src/types'
 // Import and set up ffmpeg
 import ffmpeg from 'fluent-ffmpeg'
 import { path as ffprobePath } from '@ffprobe-installer/ffprobe'
-ffmpeg.setFfprobePath(ffprobePath)
+// If there isn't a global path set, set it to the local one
+// if (!ffmpeg.getFfprobePath()) ffmpeg.setFfprobePath(ffprobePath)
 
 // Play command
 export default class Help extends Command {
