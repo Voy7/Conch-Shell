@@ -5,11 +5,6 @@ import BotHandler from '#src/classes/BotHandler'
 import Utils from '#src/classes/Utils'
 import { CommandConfig, CommandInput } from '#src/types'
 
-// Import and set up ffmpeg
-import ffmpeg from 'fluent-ffmpeg'
-import { path } from '@ffmpeg-installer/ffmpeg'
-ffmpeg.setFfmpegPath(path)
-
 // Seek to specified time command
 export default class Seek extends Command {
   public config: CommandConfig = {
