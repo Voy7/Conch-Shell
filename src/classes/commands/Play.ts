@@ -11,8 +11,12 @@ import { CommandConfig, CommandInput, PlayableType, FileInfo } from '#src/types'
 // Import and set up ffmpeg
 import ffmpeg from 'fluent-ffmpeg'
 import { path as ffprobePath } from '@ffprobe-installer/ffprobe'
-// If there isn't a global path set, set it to the local one
-// if (!ffmpeg.getFfprobePath()) ffmpeg.setFfprobePath(ffprobePath)
+// Hacky way to only add the node ffprobe path is there isn't already a valid one installed
+const ffprobeProcess = ffmpeg().ffprobe((error: any) => {
+  if (error) {
+    ffmpeg.setFfprobePath(ffprobePath)
+  }
+})
 
 // Play command
 export default class Help extends Command {
