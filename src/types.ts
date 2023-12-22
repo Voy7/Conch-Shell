@@ -21,7 +21,7 @@ export type CommandConfig = {
   onlyInBotChannels?: boolean,
   onlyInSameVC?: boolean,
   args?: {
-    type: 'String' | 'Integer' | 'Attachment',
+    type: 'String' | 'Integer' | 'Attachment' | 'Channel',
     name: string,
     description: string,
     isRequired: boolean
@@ -35,7 +35,8 @@ export type CommandInput = {
   textChannel: TextChannel,
   args: (string | null)[],
   attachment: Attachment | null,
-  reply: (payload: string | MessagePayload | MessageReplyOptions) => Promise<void>
+  reply: (payload: string | MessagePayload | MessageReplyOptions) => Promise<void>,
+  deleteMessage: () => Promise<void>
 }
 
 // Slash command data for registering on Discord

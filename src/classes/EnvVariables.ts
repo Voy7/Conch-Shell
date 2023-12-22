@@ -14,6 +14,7 @@ export default new class EnvVariables {
   public readonly NO_BOT_CHANNELS_CHECK: boolean = process.env.NO_BOT_CHANNELS_CHECK == 'true' || false
   public readonly LEAVE_TIMEOUT_IN_SECONDS: number = parseInt(process.env.LEAVE_TIMEOUT_IN_SECONDS || '1800')
   public readonly LOG_SONGS_IN_CONSOLE: boolean = process.env.LOG_SONGS_IN_CONSOLE == 'false' ? false : true
+  public readonly DISALLOW_SILENT_MODE: boolean = process.env.DISALLOW_SILENT_MODE == 'true' || false
   public readonly EMBED_COLOR_1: number = parseInt(process.env.EMBED_COLOR_1 || '0x9f5cc4') // Light purple
   public readonly EMBED_COLOR_2: number = parseInt(process.env.EMBED_COLOR_2 || '0x00bfff') // Light blue
 }

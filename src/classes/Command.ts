@@ -78,6 +78,17 @@ export default class Command {
           if (input.replied) await input.channel?.send(payload)
           else await input.reply(payload as any) // MessageReplyOptions 99% of cases will be a valid InteractionReplyOptions object
         }
+      },
+
+      // Method to delete user's message, only does something if interaction was a message
+      deleteMessage: async () => {
+        if (!('delete' in input)) return
+        try {
+          await input.delete()
+        }
+        catch (error: any) { // Could throw error if message was already deleted, so ignore it
+          Logger.warn(`Could not delete message: ${error.message}`)
+        }
       }
     }
 
@@ -118,6 +129,7 @@ export default class Command {
             case 'String': return ApplicationCommandOptionType.String
             case 'Integer': return ApplicationCommandOptionType.Integer
             case 'Attachment': return ApplicationCommandOptionType.Attachment
+            case 'Channel': return ApplicationCommandOptionType.Channel
             default: return ApplicationCommandOptionType.String
           }
         })(),

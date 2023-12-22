@@ -19,7 +19,7 @@ import { path as ffprobePath } from '@ffprobe-installer/ffprobe'
 // })
 
 // Play command
-export default class Help extends Command {
+export default class Play extends Command {
   public config: CommandConfig = {
     command: 'play',
     category: 'Music',
@@ -68,11 +68,14 @@ export default class Help extends Command {
       }
       const playable = new Playable(input, PlayableType.File, input.attachment.url, { fileInfo })
       musicPlayer.addPlayable(playable)
+      if (musicPlayer.isSilentMode) input.deleteMessage()
     }
 
     // If is a YouTube playlist URL
     else if (input.args[0]?.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/playlist\?.+$/)) {
-      input.reply(`:mag_right: \`Fetching playlist data for "${input.args[0]}", please wait...\``)
+      if (!musicPlayer.isSilentMode) {
+        input.reply(`:mag_right: \`Fetching playlist data for "${input.args[0]}", please wait...\``)
+      }
       try {
         const playlist = await this.youtubeAPI.getPlaylist(input.args[0])
         if (!playlist) return input.reply(`:x: \`Error: Could not get playlist info for "${input.args[0]}"\``)
@@ -82,14 +85,17 @@ export default class Help extends Command {
   
         const ytdlInfo = await Promise.all(videos.map(video => ytdl.getInfo(video.url)))
   
-        input.reply({ embeds: [{
-          color: EnvVariables.EMBED_COLOR_1,
-          description: `:track_next:  Added **${videos.length}** videos to the queue from playlist: [${playlist.title}](${playlist.url})`
-        }]})
+        if (!musicPlayer.isSilentMode) {
+          input.reply({ embeds: [{
+            color: EnvVariables.EMBED_COLOR_1,
+            description: `:track_next:  Added **${videos.length}** videos to the queue from playlist: [${playlist.title}](${playlist.url})`
+          }]})
+        }
   
         videos.forEach((video, index) => {
           const playable = new Playable(input, PlayableType.YouTube, video.url, { videoInfo: video, ytdlInfo: ytdlInfo[index] }, true)
           musicPlayer.addPlayable(playable)
+          if (musicPlayer.isSilentMode) input.deleteMessage()
         })
       }
       catch (error: any) { this.handleYouTubeError(error, input) }
@@ -107,6 +113,7 @@ export default class Help extends Command {
         }
         const playable = new Playable(input, PlayableType.YouTube, input.args[0], { videoInfo, ytdlInfo })
         musicPlayer.addPlayable(playable)
+        if (musicPlayer.isSilentMode) input.deleteMessage()
       }
       catch (error: any) { this.handleYouTubeError(error, input) }
     }
@@ -119,17 +126,21 @@ export default class Help extends Command {
       }
       const playable = new Playable(input, PlayableType.File, input.args[0], { fileInfo })
       musicPlayer.addPlayable(playable)
+      if (musicPlayer.isSilentMode) input.deleteMessage()
     }
 
     // If all else fails, search for a YouTube video
     else {
-      input.reply(`:mag_right: \`Searching "${input.args[0]}"...\``)
+      if (!musicPlayer.isSilentMode) {
+        input.reply(`:mag_right: \`Searching "${input.args[0]}"...\``)
+      }
       try {
         const results = await this.youtubeAPI.searchVideos(input.args[0], 1)
         if (results.length > 0) {
           const ytdlInfo = await ytdl.getInfo(results[0].url)
           const playable = new Playable(input, PlayableType.YouTube, results[0].url, { videoInfo: results[0], ytdlInfo })
           musicPlayer.addPlayable(playable)
+          if (musicPlayer.isSilentMode) input.deleteMessage()
         }
         else input.reply(`:x: \`No search results found for: "${input.args[0]}"\``)
       }

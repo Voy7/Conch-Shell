@@ -13,8 +13,8 @@ export default class MusicPlayer {
   public queue: Playable[] = []
   public currentPlayable: Playable | null = null
   public isLoopMode: boolean = false
+  public isSilentMode: boolean = false
   
-  // private player: voice.AudioPlayer
   public player: voice.AudioPlayer
   private connection: voice.VoiceConnection
   private isSkipping: boolean = false
@@ -55,7 +55,7 @@ export default class MusicPlayer {
     if (!this.currentPlayable) return this.playNextInQueue()
 
     // If there's already a song playing, send 'in queue' message
-    if (playable.addSilent) return
+    if (playable.addSilent || this.isSilentMode) return
     playable.input.reply({ embeds: [{
       color: EnvVariables.EMBED_COLOR_1,
       description: `:track_next: ${Utils.getParsedPosition(this.queue.length)} in queue: [${playable.title}](${playable.url})`
@@ -114,7 +114,9 @@ export default class MusicPlayer {
     if (!playable) {
       this.isLoopMode = false
       
-      this.textChannel.send(':white_check_mark: `Everything in the queue has been played.`')
+      if (!this.isSilentMode) {
+        this.textChannel.send(':white_check_mark: `Everything in the queue has been played.`')
+      }
 
       // If nothing is played for X minutes, leave the VC
       this.leaveTimeout = setTimeout(() => {
@@ -137,8 +139,8 @@ export default class MusicPlayer {
     // Actually start to play the song
     this.player.play(playable.resource)
 
-    // Send 'now playing' message only if Loop Mode is false
-    if (this.isLoopMode) return
+    // Send 'now playing' message only if Loop Mode is false OR Silent Mode is false
+    if (this.isLoopMode || this.isSilentMode) return
     playable.input.reply({ embeds: [{
       color: EnvVariables.EMBED_COLOR_2,
       description: `:musical_note: Now playing in ${this.voiceChannel!.name}: [${playable.title}](${playable.url})`

@@ -22,14 +22,14 @@ export default class Remove extends Command {
   public run(input: CommandInput) {
     const player = BotHandler.getMusicPlayer(input.guild.id)
     if (player && player.currentPlayable) {
-      const index = parseInt(input.args[0] || '1')
+      const index = input.args[0] ? parseInt(input.args[0]) : null
 
       if (player.queue.length == 0) {
         input.reply(':x: `The queue is empty.`')
         return
       }
       
-      if (index < 1 || index > player.queue.length) {
+      if (!index || index < 1 || index > player.queue.length) {
         input.reply(`:x: \`Provide a valid index ID. (1-${player.queue.length})\``)
         return
       }
