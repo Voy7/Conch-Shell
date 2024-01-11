@@ -1,12 +1,34 @@
 import { Guild, TextChannel, VoiceChannel } from 'discord.js'
 import * as voice from '@discordjs/voice'
-import Logger from '#src/classes/Logger'
-import EnvVariables from '#src/classes/EnvVariables'
-import Playable from '#src/classes/Playable'
-import Utils from '#src/classes/Utils'
+import Logger from '#src/Logger'
+import EnvVariables from '#src/EnvVariables'
+import Playable from '#src/audio/Playable'
+import { getParsedPosition } from '#src/lib/utils'
+import type { AudioResource } from '#src/audio/AudioResource'
+
+const musicPlayers: MusicPlayer[] = []
+
+export function getMusicPlayer(guildID: string): MusicPlayer | null {
+  return musicPlayers.find(player => player.guild.id === guildID) || null
+}
+
+export function createMusicPlayer(guild: Guild, textChannel: TextChannel, voiceChannel: VoiceChannel): MusicPlayer {
+  const existingPlayer = getMusicPlayer(guild.id)
+  if (existingPlayer) return existingPlayer
+
+  const musicPlayer = new MusicPlayer(guild, textChannel, voiceChannel)
+  musicPlayers.push(musicPlayer)
+  return musicPlayer
+}
+
+export function deleteMusicPlayer(guildID: string) {
+  const musicPlayer = getMusicPlayer(guildID)
+  if (!musicPlayer) return
+  musicPlayers.splice(musicPlayers.indexOf(musicPlayer), 1)
+}
 
 // Music player handler class, 1 per guild
-export default class MusicPlayer {
+class MusicPlayer {
   public guild: Guild
   public textChannel: TextChannel
   public voiceChannel: VoiceChannel
@@ -40,8 +62,10 @@ export default class MusicPlayer {
     })
 
     this.player.on('error', error => {
+      //if (error.message == 'write after end') return // Happens when using ffmpeg on youtube streams, ignore it
       this.textChannel.send(`:x: \`An error occurred while playing audio: ${error.message}\``)
       Logger.error(error)
+      console.error(error)
     })
   }
 
@@ -58,7 +82,7 @@ export default class MusicPlayer {
     if (playable.addSilent || this.isSilentMode) return
     playable.input.reply({ embeds: [{
       color: EnvVariables.EMBED_COLOR_1,
-      description: `:track_next: ${Utils.getParsedPosition(this.queue.length)} in queue: [${playable.title}](${playable.url})`
+      description: `:track_next: ${getParsedPosition(this.queue.length)} in queue: [${playable.title}](${playable.url})`
     }]})
     if (this.isLoopMode) playable.input.reply(':warning: `Warn: This item will not play until Loop Mode is disabled, or the current item is skipped.`')
   }
@@ -96,7 +120,7 @@ export default class MusicPlayer {
     if (!this.currentPlayable) return
     this.currentPlayable.resource.playStream.destroy()
     this.currentPlayable.resource = this.currentPlayable.createAudioResource(timeSeconds)
-    this.player.play(this.currentPlayable.resource)
+    this.player.play(this.currentPlayable.resource as any)
   }
 
   // Method to actually play the next song in the queue
@@ -137,7 +161,7 @@ export default class MusicPlayer {
     }
 
     // Actually start to play the song
-    this.player.play(playable.resource)
+    this.player.play(playable.resource as any)
 
     // Send 'now playing' message only if Loop Mode is false OR Silent Mode is false
     if (this.isLoopMode || this.isSilentMode) return

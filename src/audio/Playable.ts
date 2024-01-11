@@ -1,7 +1,9 @@
-import * as voice from '@discordjs/voice'
 import ytdl from 'ytdl-core'
-import BotHandler from '#src/classes/BotHandler'
+import { parseHTMLEntities } from '#src/lib/utils'
+import { getMusicPlayer } from '#src/audio/MusicPlayer'
+import { createAudioResource, AudioResource } from '#src/audio/AudioResource'
 import { CommandInput, PlayableType, PlayableExtraInfo } from '#src/types'
+
 
 // Queue item "Playable" class
 export default class Playable {
@@ -10,12 +12,12 @@ export default class Playable {
   public url: string
   public extraInfo?: PlayableExtraInfo
   public addSilent: boolean
-  public resource: voice.AudioResource
+  public resource: AudioResource
   public startedTimeSeconds: number = 0
 
   public readonly VOLUME_MULTIPLIER = 0.75
 
-  constructor(input: CommandInput, type: PlayableType, url: string, extraInfo?: PlayableExtraInfo, addSilent = false) {
+  constructor(input: CommandInput, type: PlayableType, url: string, extraInfo?: PlayableExtraInfo, addSilent = false, seekSeconds = 0) {
     this.input = input
     this.type = type
     this.url = url
@@ -23,32 +25,37 @@ export default class Playable {
     this.addSilent = addSilent
 
     // Create audio resource:
-    this.resource = this.createAudioResource()
+    this.resource = this.createAudioResource(seekSeconds)
   }
 
-  public createAudioResource(timeSeconds: number = 0): voice.AudioResource {
-    this.startedTimeSeconds = timeSeconds
-    let resource: voice.AudioResource
+  public createAudioResource(seekSeconds: number = 0): AudioResource {
+    this.startedTimeSeconds = seekSeconds
 
-    if (this.type === PlayableType.YouTube) { // is YouTube video
-      resource = voice.createAudioResource(ytdl(this.url, {
-        filter: 'audioonly',
-        quality: 'highestaudio',
-        highWaterMark: 1 << 25
-      }), {
-        inlineVolume: true
-      })
-    }
-    else { // is (probably) File type
-      resource = voice.createAudioResource(this.url)
-    }
+    const source = (() => {
+      if (this.type === PlayableType.YouTube) { // is YouTube video
+        const yt = ytdl(this.url, {
+          filter: 'audioonly',
+          quality: 'highestaudio',
+          highWaterMark: 1 << 25
+        })
+        return yt
+      }
+      else { // is (probably) File type
+        return this.url
+      }
+    })()
+
+    const resource = createAudioResource(source, {
+      inlineVolume: this.type === PlayableType.YouTube ? true : false,
+      seekSeconds: seekSeconds
+    })
     
     // Set a lower volume, 100% seems to cause clipping
     resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
 
     // If the resource ended, reset it so it can be played again in loop mode
     resource.playStream.on('end', () => {
-      const musicPlayer = BotHandler.getMusicPlayer(this.input.guild.id)
+      const musicPlayer = getMusicPlayer(this.input.guild.id)
       if (musicPlayer?.isLoopMode) {
         this.resource = this.createAudioResource()
         this.resource.volume?.setVolume(this.VOLUME_MULTIPLIER)
@@ -63,14 +70,7 @@ export default class Playable {
     let title = 'Unknown Title'
     if (this.extraInfo?.videoInfo?.title) title = this.extraInfo.videoInfo.title
     else if (this.extraInfo?.fileInfo?.name) title = this.extraInfo.fileInfo.name
-
-    // Remove the most common HTML entities from the title
-    title = title.replace(/&amp;/g, '&')
-    title = title.replace(/&quot;/g, '"')
-    title = title.replace(/&apos;/g, "'")
-    title = title.replace(/&lt;/g, '<')
-    title = title.replace(/&gt;/g, '>')
-
+    title = parseHTMLEntities(title)
     return title
   }
 

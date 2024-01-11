@@ -4,6 +4,8 @@ import type {
   User,
   Guild,
   TextChannel,
+  Interaction,
+  Message,
   MessagePayload,
   MessageReplyOptions,
   Attachment,
@@ -12,7 +14,16 @@ import type {
 } from 'discord.js'
 import type ytdl from 'ytdl-core'
 
-// Command class configuration shape
+// Full command data
+export type Command = {
+  config: CommandConfig,
+  run: (input: CommandInput) => any,
+  execute: (input: Message | Interaction) => any,
+  allAliases: string[],
+  slashCommandData: SlashCommandData
+}
+
+// Command configuration shape
 export type CommandConfig = {
   command: string,
   category: 'Unknown' | 'Music' | 'Misc',
@@ -30,12 +41,13 @@ export type CommandConfig = {
 
 // Common command input
 export type CommandInput = {
+  type: 'Message' | 'Interaction',
   user: User,
   guild: Guild,
   textChannel: TextChannel,
   args: (string | null)[],
   attachment: Attachment | null,
-  reply: (payload: string | MessagePayload | MessageReplyOptions) => Promise<void>,
+  reply: (payload: string | MessagePayload | MessageReplyOptions) => Promise<Message | undefined>,
   deleteMessage: () => Promise<void>
 }
 
