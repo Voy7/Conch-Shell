@@ -4,9 +4,12 @@ import { path as ffprobePath } from '@ffprobe-installer/ffprobe'
 import { passCheck, failCheck } from '#src/lib/requirements'
 // Hacky way to only add the node ffprobe path is there isn't already a valid one installed
 
-ffmpeg.setFfmpegPath(ffmpegPath)
-ffmpeg.setFfprobePath(ffprobePath)
-console.log(ffmpegPath, ffprobePath)
+
+import '#src/lib/prism'
+
+// ffmpeg.setFfmpegPath(ffmpegPath)
+// ffmpeg.setFfprobePath(ffprobePath)
+// console.log(ffmpegPath, ffprobePath)
 
 // Check if ffmpeg is installed by running a simple command
 async function checkFfmpeg() {
