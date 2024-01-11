@@ -1,11 +1,13 @@
-import { importedEnv } from "#src/EnvVariables"
+// Handles startup requirement checks messages
 
 const CHECKS = [
   'EnvironmentVariables',
   'BotLogin',
   'ApplicationIDValid',
   'RegisteredCommands',
-  'FfmpegValid'
+  'FfmpegValid',
+  'FfprobeValid',
+  'YouTubeAPIKeyValid'
 ] as const
 
 type CheckName = typeof CHECKS[number]
@@ -19,7 +21,7 @@ export function passCheck(name: CheckName, message: string) {
   checks.set(name, true)
   const passed = Array.from(checks.values()).filter(check => check === true).length
   if (passed === checks.size) {
-    console.log(`\nAll checks passed, bot is ready to go.\n`.green)
+    console.log(`\n  All checks passed, bot is up and running!\n`.green)
   }
 }
 
@@ -27,15 +29,3 @@ export function failCheck(name: CheckName, message: string) {
   console.log('[x]'.red, message.white)
   checks.set(name, false)
 }
-
-// Required environment variables
-const REQUIRED_VARIABLES = [
-  'BOT_TOKEN', 'BOT_APPLICATION_ID', 'YOUTUBE_API_KEY'
-]
-
-// export function runChecks() {
-//   failCount = 0
-//   checkEnvVariables()
-
-//   if (failCount > 0) return
-//   console.log(`\nAll checks passed, bot is ready to go.\n`.green)

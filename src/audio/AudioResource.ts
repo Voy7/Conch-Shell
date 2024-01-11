@@ -1,5 +1,5 @@
 import prism from 'prism-media'
-import { pipeline, Readable } from 'node:stream'
+import { pipeline, type Readable } from 'node:stream'
 import { Edge, findPipeline, StreamType, TransformerType } from '#src/audio/TransformerGraph'
 
 // Options that are set when creating a new audio resource.

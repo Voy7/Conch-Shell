@@ -1,6 +1,6 @@
-import { ChannelType, type Guild, type VoiceChannel } from 'discord.js'
+import { ChannelType, Guild, VoiceChannel } from 'discord.js'
 
-// Collection of utility functions
+// Collection of utility functions:
 
 // Get the voice channel of a user in a guild
 export function getUserVoiceChannel(guild: Guild, userID: string): VoiceChannel | null {

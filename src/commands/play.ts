@@ -1,8 +1,8 @@
 import ytdl from 'ytdl-core'
-import YoutubeAPI from 'simple-youtube-api'
 import Logger from '#src/Logger'
 import EnvVariables from '#src/EnvVariables'
 import Playable from '#src/audio/Playable'
+import youtubeAPI from '#src/lib/youtubeAPI'
 import ffmpeg from '#src/lib/ffmpeg'
 import { getUserVoiceChannel } from '#src/lib/utils'
 import { createMusicPlayer } from '#src/audio/MusicPlayer'
@@ -31,8 +31,6 @@ export const config: CommandConfig = {
     }
   ]
 }
-
-const youtubeAPI = new YoutubeAPI(EnvVariables.YOUTUBE_API_KEY)
 
 export async function run(input: CommandInput) {
   // If no args or attachments, act as unpause command

@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, type Interaction, type Message } from 'discord.js'
+import { ApplicationCommandOptionType, MessagePayload, MessageReplyOptions, Interaction, Message } from 'discord.js'
 import { readdirSync } from 'fs'
 import { REST, Routes } from 'discord.js'
 import EnvVariables from '#src/EnvVariables'
@@ -55,7 +55,7 @@ export async function registerCommands() {
     if (error.message.includes('application_id')) {
       return failCheck('ApplicationIDValid', 'Invalid application ID.')
     }
-    else failCheck('RegisteredCommands', `Failed to register application commands. ${error.message}`)
+    failCheck('RegisteredCommands', `Failed to register application commands. ${error.message}`)
   }
 
   // Register interactionCreate (slash commands) event
@@ -86,82 +86,74 @@ export async function registerCommands() {
 // Message or Interaction into a common CommandInput object. Also, runs
 // checks for 'onlyInBotChannels', 'onlyInSameVC', etc properties
 export function executeCommand(command: Command, input: Message | Interaction): void | Promise<void> {
-  const parsedInput: CommandInput = {
-    // Type of input
-    type: (() => {
-      if ('author' in input) return 'Message'
-      return 'Interaction'
-    })(),
+  // Determine input type, "author" property only exists in Message
+  function checkIsMessage(input: Message | Interaction): input is Message {
+    return ('author' in input)
+  }
 
-    // User who executed the command
-    user: (() => {
-      if ('author' in input) return input.author // is Message
-      return input.user // is Interaction
-    })(),
+  const isMessage = checkIsMessage(input)
 
-    // Guild command was executed in
-    guild: input.guild!,
-
-    // TextChannel command was executed in
-    textChannel: input.channel as any, // Already checked is TextChannel
-
-    // Command arguments
-    args: (() => {
-      if ('content' in input) { // is Message
-        if (!command.config.args) return []
-        // Every arg EXCEPT the last arg will always be '1 word', or null if not provided
-        const content = input.content.split(' ').slice(1)
-        const realArgs = command.config.args.filter(arg => arg.type !== 'Attachment')
-        return realArgs.map((_, index) => {
-          if (index === realArgs.length - 1) {
-            return content.slice(index).join(' ') || null
-          }
-          return content[index] || null
-        })
-      }
-      else { // is Interaction
-        if (!input.isCommand()) return [] // Only used to typecast input into a SlashCommandInteraction
-        return command.config.args?.map(arg => {
-          const option = input.options.get(arg.name)
-          if (!option) return null
-          return option.value as string
-        }) || []
-      }
-    })(),
-
-    // Attached file, if any
-    attachment: (() => {
-      if ('attachments' in input) return input.attachments.first() || null // is Message
-      else { // is Interaction
-        if (!input.isCommand()) return null // Only used to typecast input into a SlashCommandInteraction
-        return input.options.getAttachment('attachment') || null
-      }
-    })(),
-
-    // Method to reply/send a message in the correct channel
-    reply: async (payload) => {
-      let message: Message | undefined
-      if ('author' in input) { // is Message
-        message = await input.channel.send(payload)
-      }
-      else { // is Interaction
-        if (!input.isCommand()) return // Never happens, only used to typecast input into a SlashCommandInteraction
-        if (input.replied) message = await input.channel?.send(payload)
-        else message = await input.reply(payload as any) // MessageReplyOptions 99% of cases will be a valid InteractionReplyOptions object
-      }
-      return message
-    },
-
-    // Method to delete user's message, only does something if interaction was a message
-    deleteMessage: async () => {
-      if (!('delete' in input)) return
-      try {
-        await input.delete()
-      }
-      catch (error: any) { // Could throw error if message was already deleted, so ignore it
-        Logger.warn(`Could not delete message: ${error.message}`)
-      }
+  // Command arguments
+  const args = (() => {
+    if (isMessage) { // is Message
+      if (!command.config.args) return []
+      // Every arg EXCEPT the last arg will always be '1 word', or null if not provided
+      const content = input.content.split(' ').slice(1)
+      const realArgs = command.config.args.filter(arg => arg.type !== 'Attachment')
+      return realArgs.map((_, index) => {
+        if (index === realArgs.length - 1) {
+          return content.slice(index).join(' ') || null
+        }
+        return content[index] || null
+      })
     }
+
+    // is Interaction
+    if (!input.isCommand()) return [] // Only used to typecast input into a SlashCommandInteraction
+    return command.config.args?.map(arg => {
+      const option = input.options.get(arg.name)
+      if (!option) return null
+      return option.value as string
+    }) || []
+  })()
+
+  // Attached file, if any
+  const attachment = (() => {
+    if (isMessage) return input.attachments.first() || null
+    if (!input.isCommand()) return null // Only used to typecast input into a SlashCommandInteraction
+    return input.options.getAttachment('attachment') || null
+  })()
+
+  // Method to reply/send a message in the correct channel
+  const reply = async (payload: string | MessagePayload | MessageReplyOptions) => {
+    let message: Message | undefined
+    if (isMessage) {
+      return message = await input.channel.send(payload)
+    }
+    if (!input.isCommand()) return // Never happens, only used to typecast input into a SlashCommandInteraction
+    if (input.replied) return message = await input.channel?.send(payload)
+    return message = await input.reply(payload as any) // MessageReplyOptions 99% of cases will be a valid InteractionReplyOptions object
+  }
+
+  // Method to delete user's message, only does something if interaction was a message
+  const deleteMessage = async () => {
+    if (!('delete' in input)) return
+    try { await input.delete() }
+    catch (error: any) { // Could throw error if message was already deleted, so ignore it
+      Logger.warn(`Could not delete message: ${error.message}`)
+    }
+  }
+
+  // Create the CommandInput object
+  const parsedInput: CommandInput = {
+    type: isMessage ? 'Message' : 'Interaction',
+    user: isMessage ? input.author : input.user,
+    guild: input.guild!,
+    textChannel: input.channel as any, // Already checked is TextChannel
+    args,
+    attachment,
+    reply,
+    deleteMessage
   }
 
   // If command has 'onlyInSameVC' property, check if executor is in same VC as bot

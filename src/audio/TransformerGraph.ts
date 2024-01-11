@@ -1,5 +1,5 @@
 import prism from 'prism-media'
-import type { Readable } from 'node:stream'
+import{ type Readable } from 'node:stream'
 
 const FFMPEG_PCM_ARGUMENTS = [
   '-analyzeduration', '0', // Disable probing by ffmpeg
@@ -7,16 +7,14 @@ const FFMPEG_PCM_ARGUMENTS = [
   '-f', 's16le', // To PCM 16-bit little-endian format
   '-ar', '48000', // 48KHz sampling rate
   '-ac', '2', // 2 channels (stereo)
-  '-ss', '60'
 ]
 const FFMPEG_OPUS_ARGUMENTS = [
-	'-analyzeduration', '0',
-	'-loglevel', '0',
-	'-acodec', 'libopus',
-	'-f', 'opus',
-	'-ar', '48000',
-	'-ac', '2',
-	'-ss', '60'
+	'-analyzeduration', '0', // Disable probing by ffmpeg
+	'-loglevel', '0', // No logging
+	'-acodec', 'libopus', // Use Opus codec
+	'-f', 'opus', // To Opus format
+	'-ar', '48000', // 48KHz sampling rate
+	'-ac', '2', // 2 channels (stereo)
 ]
 
 export enum StreamType {

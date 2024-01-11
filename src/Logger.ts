@@ -1,5 +1,4 @@
 import EnvVariables from "#src/EnvVariables"
-import 'colors'
 
 // Logger class, singleton
 export default new class Logger {

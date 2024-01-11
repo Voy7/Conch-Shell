@@ -4,7 +4,6 @@ import Logger from '#src/Logger'
 import EnvVariables from '#src/EnvVariables'
 import Playable from '#src/audio/Playable'
 import { getParsedPosition } from '#src/lib/utils'
-import type { AudioResource } from '#src/audio/AudioResource'
 
 const musicPlayers: MusicPlayer[] = []
 

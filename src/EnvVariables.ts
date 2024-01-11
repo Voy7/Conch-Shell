@@ -30,6 +30,8 @@ export default new class EnvVariables {
   public readonly BOT_APPLICATION_ID: string = process.env.BOT_APPLICATION_ID || ''
   public readonly YOUTUBE_API_KEY: string = process.env.YOUTUBE_API_KEY || ''
   public readonly BOT_PREFIX: string = process.env.BOT_PREFIX || '_'
+  public readonly FFMPEG_PATH: string | null = process.env.FFMPEG_PATH || null // null = use built-in module
+  public readonly FFPROBE_PATH: string | null = process.env.FFPROBE_PATH || null // null = use built-in module
   public readonly NO_BOT_CHANNELS_CHECK: boolean = process.env.NO_BOT_CHANNELS_CHECK == 'true' || false
   public readonly LEAVE_TIMEOUT_IN_SECONDS: number = parseInt(process.env.LEAVE_TIMEOUT_IN_SECONDS || '1800')
   public readonly LOG_SONGS_IN_CONSOLE: boolean = process.env.LOG_SONGS_IN_CONSOLE == 'false' ? false : true

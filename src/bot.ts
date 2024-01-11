@@ -1,4 +1,4 @@
-import { ActivityType, Client, GatewayIntentBits, Guild, TextChannel, VoiceChannel } from 'discord.js'
+import { ActivityType, Client, GatewayIntentBits, VoiceChannel } from 'discord.js'
 import EnvVariables from '#src/EnvVariables'
 import Logger from '#src/Logger'
 import { passCheck, failCheck } from '#src/lib/requirements'
@@ -31,8 +31,7 @@ client.on('ready', () => {
 
 // If bot leaves/moves VC, either delete music player or update player's voice channel
 client.on('voiceStateUpdate', (oldState, newState) => {
-  // If it's not the bot, return
-  if (oldState.member?.id !== client.user?.id) return
+  if (oldState.member?.id !== client.user?.id) return // If it's not the bot, return
 
   // Disconnected from VC, delete music player
   if (oldState.channel && !newState.channel) {

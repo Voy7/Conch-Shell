@@ -1,26 +1,27 @@
 import ffmpeg from 'fluent-ffmpeg'
 import { path as ffmpegPath } from '@ffmpeg-installer/ffmpeg'
 import { path as ffprobePath } from '@ffprobe-installer/ffprobe'
+import EnvVariables from '#src/EnvVariables'
 import { passCheck, failCheck } from '#src/lib/requirements'
-// Hacky way to only add the node ffprobe path is there isn't already a valid one installed
 
+// Set the ffmpeg and ffprobe path to either the custom path, or default to built-in module
+if (EnvVariables.FFMPEG_PATH) ffmpeg.setFfmpegPath(EnvVariables.FFMPEG_PATH)
+else ffmpeg.setFfmpegPath(ffmpegPath)
+if (EnvVariables.FFPROBE_PATH) ffmpeg.setFfprobePath(EnvVariables.FFPROBE_PATH)
+else ffmpeg.setFfprobePath(ffprobePath)
 
-import '#src/lib/prism'
-
-// ffmpeg.setFfmpegPath(ffmpegPath)
-// ffmpeg.setFfprobePath(ffprobePath)
-// console.log(ffmpegPath, ffprobePath)
-
-// Check if ffmpeg is installed by running a simple command
-async function checkFfmpeg() {
+// Check if ffmpeg & ffprobe is installed by running a simple command
+export async function checkFfmpeg() {
   try {
     ffmpeg()
     passCheck('FfmpegValid', 'Ffmpeg is installed.')
   }
-  catch (error) {
-    failCheck('FfmpegValid', 'Ffmpeg is not installed.')
-  }
+  catch (error) { failCheck('FfmpegValid', 'Ffmpeg path is not valid, try setting a custom one.') }
+
+  ffmpeg.ffprobe('-version', (error) => {
+    if (error) failCheck('FfprobeValid', 'Ffprobe path is not valid, try setting a custom one.')
+    else passCheck('FfprobeValid', 'Ffprobe is installed.')
+  })
 }
-checkFfmpeg()
 
 export default ffmpeg
